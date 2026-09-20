@@ -1,35 +1,603 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="เครื่องคำนวณต้นทุนสูตรอาหารและวิเคราะห์กำไร">
-  <title>Recipe Cost Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recipe Cost Calculator Pro - เครื่องคำนวณต้นทุนร้านอาหาร</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    :root{--ink:#172033;--muted:#64748b;--line:#dbe3ef;--bg:#f1f5f9;--card:#fff;--accent:#f59e0b;--good:#059669;--bad:#e11d48}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px system-ui,-apple-system,"Segoe UI",sans-serif}header{background:#172033;color:#fff;padding:20px 5%;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}h1,h2,h3,p{margin:0}h1{font-size:clamp(20px,3vw,30px)}header p{color:#cbd5e1;margin-top:4px}.actions{display:flex;gap:8px;flex-wrap:wrap}button{border:0;border-radius:9px;padding:9px 13px;font:inherit;font-weight:600;cursor:pointer;background:#e2e8f0;color:var(--ink)}button:hover{filter:brightness(.96)}.primary{background:var(--accent)}.dark{background:#0f172a;color:#fff}.success{background:var(--good);color:#fff}.danger{background:#ffe4e6;color:#be123c}.tabs{background:#0f172a;padding:8px 5%;display:flex;gap:8px;overflow:auto}.tabs button{background:transparent;color:#cbd5e1;white-space:nowrap}.tabs button.active{background:var(--accent);color:#172033}.wrap{max-width:1250px;margin:24px auto;padding:0 16px}.notice{padding:14px;background:#fffbeb;border:1px solid #fcd34d;border-radius:12px;margin-bottom:18px}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:18px}.card-head{padding:15px 18px;background:#f8fafc;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.scroll{overflow:auto}table{border-collapse:collapse;width:100%;min-width:760px}th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}th{font-size:12px;text-transform:uppercase;color:var(--muted);background:#f8fafc}input,select{width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;font:inherit}input:focus,select:focus{outline:2px solid #fbbf24;border-color:transparent}.num{width:105px;text-align:right}.center{text-align:center}.right{text-align:right}.muted{color:var(--muted);font-size:13px}.cost{font-weight:700;color:var(--good);white-space:nowrap}.recipe{border:1px solid var(--line);border-radius:14px;background:#fff;margin-bottom:18px;overflow:hidden}.recipe-head{background:#172033;color:#fff;padding:16px;display:flex;justify-content:space-between;gap:16px;align-items:center}.recipe-head input{background:transparent;color:#fff;border-color:#64748b;font-size:18px;font-weight:700}.recipe-grid{display:grid;grid-template-columns:2fr 1fr}.recipe-body,.pricing{padding:16px}.pricing{background:#f8fafc;border-left:1px solid var(--line)}.item{display:grid;grid-template-columns:1fr 110px 90px 36px;gap:8px;align-items:center;margin:8px 0}.metric{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)}.metric strong{font-size:18px}.pricebox{background:#fef3c7;border:1px solid #fcd34d;padding:12px;border-radius:10px;margin:12px 0}.pricebox strong{font-size:26px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}.stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px}.stat b{display:block;font-size:28px;margin-top:5px}.empty{text-align:center;color:var(--muted);padding:30px}.badge{display:inline-block;padding:4px 8px;border-radius:99px;font-size:12px;background:#e2e8f0}.badge.good{background:#d1fae5;color:#065f46}.badge.bad{background:#ffe4e6;color:#9f1239}@media(max-width:750px){.recipe-grid{grid-template-columns:1fr}.pricing{border-left:0;border-top:1px solid var(--line)}.stats{grid-template-columns:1fr}.item{grid-template-columns:1fr 90px 70px 32px}.wrap{margin-top:16px}}
+    body { font-family: 'Prompt', sans-serif; }
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
   </style>
 </head>
-<body>
-<header><div><h1>฿ Recipe Cost Calculator</h1><p>คำนวณต้นทุนสูตรอาหารและวิเคราะห์กำไรแบบใช้งานจริง</p></div><div class="actions"><button class="success" id="export">ส่งออก CSV</button><button id="reset">โหลดข้อมูลตัวอย่าง</button></div></header>
-<nav class="tabs"><button data-tab="ingredients" class="active">📦 วัตถุดิบ <span id="ingredientCount"></span></button><button data-tab="recipes">🍳 สูตรอาหาร <span id="recipeCount"></span></button><button data-tab="dashboard">📊 วิเคราะห์กำไร</button></nav>
-<main class="wrap"><section id="ingredients"><div class="notice">💡 ราคาต่อหน่วยจะถูกปรับด้วย Yield อัตโนมัติ เช่น ซื้อไก่ 1 กก. ได้เนื้อใช้จริง 80% ต้นทุนต่อกิโลกรัมที่ใช้ได้จะสูงขึ้น</div><div class="card"><div class="card-head"><div><h2>ฐานข้อมูลวัตถุดิบ</h2><span class="muted">ข้อมูลบันทึกไว้ในเครื่องนี้อัตโนมัติ</span></div><button class="dark" id="addIngredient">+ เพิ่มวัตถุดิบ</button></div><div class="scroll"><table><thead><tr><th>ชื่อ</th><th>หมวดหมู่</th><th>ราคาซื้อ</th><th>ปริมาณ</th><th>หน่วย</th><th>Yield %</th><th class="right">ต้นทุนต่อหน่วยใช้ได้</th><th></th></tr></thead><tbody id="ingredientRows"></tbody></table></div></div></section>
-<section id="recipes" hidden><div class="card-head" style="border:0;border-radius:14px;margin-bottom:18px;background:#fff"><div><h2>สูตรอาหาร</h2><span class="muted">เพิ่มวัตถุดิบและกำหนดราคาขายเพื่อดูต้นทุนต่อจาน</span></div><button class="primary" id="addRecipe">+ สร้างสูตรใหม่</button></div><div id="recipeList"></div></section>
-<section id="dashboard" hidden><div class="stats"><div class="stat">เมนูทั้งหมด<b id="statRecipes">0</b></div><div class="stat">Food Cost เฉลี่ย<b id="statFood">0.0%</b></div><div class="stat">กำไรต่อจานเฉลี่ย<b id="statMargin">฿0.00</b></div></div><div class="card"><div class="card-head"><h2>ตารางวิเคราะห์กำไร</h2></div><div class="scroll"><table><thead><tr><th>เมนู</th><th class="right">ต้นทุน/จาน</th><th class="right">ราคาขาย</th><th class="right">Food Cost</th><th class="right">กำไร</th><th>สถานะ</th></tr></thead><tbody id="dashboardRows"></tbody></table></div></div></section></main>
-<script>
-const KEY='recipe-cost-calculator-v1';
-const sample={ingredients:[{id:'i1',name:'อกไก่สด',category:'เนื้อสัตว์',price:95,qty:1,unit:'kg',yield:88},{id:'i2',name:'ไข่ไก่',category:'เครื่องปรุง',price:130,qty:30,unit:'ฟอง',yield:100},{id:'i3',name:'ข้าวหอมมะลิ',category:'ของแห้ง/แป้ง',price:195,qty:5,unit:'kg',yield:100},{id:'i4',name:'กล่องอาหาร',category:'บรรจุภัณฑ์',price:150,qty:50,unit:'ชิ้น',yield:100}],recipes:[{id:'r1',name:'ข้าวกะเพราอกไก่ไข่ดาว',portion:1,target:30,selling:75,items:[{ingredient:'i1',qty:.15},{ingredient:'i3',qty:.12},{ingredient:'i2',qty:1}]}]};
-let data=load();
-function load(){try{return JSON.parse(localStorage.getItem(KEY))||structuredClone(sample)}catch(e){return structuredClone(sample)}}
-function save(){localStorage.setItem(KEY,JSON.stringify(data));render()}
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
-const ing=id=>data.ingredients.find(x=>x.id===id); const unitCost=i=>{i= i||{};return Number(i.price)>0&&Number(i.qty)>0&&Number(i.yield)>0?Number(i.price)/Number(i.qty)/(Number(i.yield)/100):0};
-const recipeCost=r=>r.items.reduce((sum,x)=>sum+unitCost(ing(x.ingredient))*Number(x.qty||0),0)/(Number(r.portion)||1); const food=r=>Number(r.selling)>0?recipeCost(r)/Number(r.selling)*100:0; const margin=r=>Number(r.selling||0)-recipeCost(r);
-function renderIngredients(){ingredientCount.textContent=`(${data.ingredients.length})`;ingredientRows.innerHTML=data.ingredients.map((i,n)=>`<tr><td><input data-kind="ing" data-id="${i.id}" data-field="name" value="${esc(i.name)}"></td><td><select data-kind="ing" data-id="${i.id}" data-field="category"><option ${i.category==='เนื้อสัตว์'?'selected':''}>เนื้อสัตว์</option><option ${i.category==='ผักผลไม้'?'selected':''}>ผักผลไม้</option><option ${i.category==='เครื่องปรุง'?'selected':''}>เครื่องปรุง</option><option ${i.category==='ของแห้ง/แป้ง'?'selected':''}>ของแห้ง/แป้ง</option><option ${i.category==='บรรจุภัณฑ์'?'selected':''}>บรรจุภัณฑ์</option><option>อื่นๆ</option></select></td><td><input class="num" type="number" min="0" step="any" data-kind="ing" data-id="${i.id}" data-field="price" value="${i.price}"></td><td><input class="num" type="number" min="0.001" step="any" data-kind="ing" data-id="${i.id}" data-field="qty" value="${i.qty}"></td><td><input data-kind="ing" data-id="${i.id}" data-field="unit" value="${esc(i.unit)}"></td><td><input class="num" type="number" min="1" max="100" data-kind="ing" data-id="${i.id}" data-field="yield" value="${i.yield}"></td><td class="right cost">฿${unitCost(i).toFixed(2)} / ${esc(i.unit)}</td><td><button class="danger" data-delete-ing="${i.id}">ลบ</button></td></tr>`).join('')||'<tr><td colspan="8" class="empty">ยังไม่มีวัตถุดิบ</td></tr>'}
-function renderRecipes(){recipeCount.textContent=`(${data.recipes.length})`;recipeList.innerHTML=data.recipes.map(r=>`<article class="recipe"><div class="recipe-head"><div style="flex:1"><input data-kind="recipe" data-id="${r.id}" data-field="name" value="${esc(r.name)}"><div class="muted">ต้นทุนต่อจาน ฿${recipeCost(r).toFixed(2)} · ${r.items.length} รายการ</div></div><button class="danger" data-delete-recipe="${r.id}">ลบสูตร</button></div><div class="recipe-grid"><div class="recipe-body"><div style="display:flex;justify-content:space-between;align-items:center"><b>ส่วนผสม</b><button data-add-item="${r.id}">+ เพิ่มวัตถุดิบ</button></div>${r.items.map((x,n)=>`<div class="item"><select data-kind="item" data-rid="${r.id}" data-index="${n}" data-field="ingredient"><option value="">-- เลือก --</option>${data.ingredients.map(i=>`<option value="${i.id}" ${x.ingredient===i.id?'selected':''}>${esc(i.name)}</option>`).join('')}</select><input type="number" step="any" min="0" data-kind="item" data-rid="${r.id}" data-index="${n}" data-field="qty" value="${x.qty}"><span class="muted">${esc((ing(x.ingredient)||{}).unit||'-')}<br><b>฿${(unitCost(ing(x.ingredient))*Number(x.qty||0)).toFixed(2)}</b></span><button class="danger" data-remove-item="${r.id}" data-index="${n}">×</button></div>`).join('')||'<div class="empty">ยังไม่มีส่วนผสม</div>'}</div><div class="pricing"><div class="metric"><span>จำนวนเสิร์ฟ</span><input class="num" type="number" min="1" data-kind="recipe" data-id="${r.id}" data-field="portion" value="${r.portion}"></div><div class="metric"><span>ต้นทุนต่อจาน</span><strong>฿${recipeCost(r).toFixed(2)}</strong></div><label class="muted">เป้าหมาย Food Cost %<input type="number" min="1" max="100" data-kind="recipe" data-id="${r.id}" data-field="target" value="${r.target}"></label><div class="pricebox">ราคาขายแนะนำ<br><strong>฿${(recipeCost(r)/(Number(r.target)||30)*100).toFixed(0)}</strong></div><label class="muted">ราคาขายจริง (บาท)<input type="number" min="0" step="any" data-kind="recipe" data-id="${r.id}" data-field="selling" value="${r.selling}"></label><div class="metric"><span>Food Cost จริง</span><strong>${food(r).toFixed(1)}%</strong></div><div class="metric"><span>กำไรต่อจาน</span><strong class="cost">฿${margin(r).toFixed(2)}</strong></div></div></div></article>`).join('')||'<div class="empty">ยังไม่มีสูตรอาหาร กด “สร้างสูตรใหม่” เพื่อเริ่มต้น</div>'}
-function renderDashboard(){statRecipes.textContent=data.recipes.length;let avgF=data.recipes.length?data.recipes.reduce((s,r)=>s+food(r),0)/data.recipes.length:0,avgM=data.recipes.length?data.recipes.reduce((s,r)=>s+margin(r),0)/data.recipes.length:0;statFood.textContent=avgF.toFixed(1)+'%';statMargin.textContent='฿'+avgM.toFixed(2);dashboardRows.innerHTML=data.recipes.map(r=>`<tr><td><b>${esc(r.name)}</b></td><td class="right">฿${recipeCost(r).toFixed(2)}</td><td class="right">฿${Number(r.selling||0).toFixed(2)}</td><td class="right">${food(r).toFixed(1)}%</td><td class="right cost">฿${margin(r).toFixed(2)}</td><td><span class="badge ${food(r)<=35?'good':'bad'}">${food(r)<=35?'✔ มาตรฐาน':'⚠ ต้นทุนสูง'}</span></td></tr>`).join('')||'<tr><td colspan="6" class="empty">ยังไม่มีข้อมูล</td></tr>'}
-function render(){renderIngredients();renderRecipes();renderDashboard()}
-document.addEventListener('change',e=>{const el=e.target;if(!el.dataset.kind)return;let obj,field=el.dataset.field;if(el.dataset.kind==='ing')obj=ing(el.dataset.id);else if(el.dataset.kind==='recipe')obj=data.recipes.find(r=>r.id===el.dataset.id);else{obj=data.recipes.find(r=>r.id===el.dataset.rid)?.items[Number(el.dataset.index)];field=field==='ingredient'?'ingredient':field}if(obj){obj[field]=el.type==='number'?Number(el.value):el.value;save()}});
-document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.tab){document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('active',x===b));['ingredients','recipes','dashboard'].forEach(x=>document.getElementById(x).hidden=x!==b.dataset.tab)}if(b.id==='addIngredient'){data.ingredients.push({id:'i'+Date.now(),name:'วัตถุดิบใหม่',category:'อื่นๆ',price:0,qty:1,unit:'kg',yield:100});save()}if(b.id==='addRecipe'){data.recipes.push({id:'r'+Date.now(),name:'เมนูใหม่',portion:1,target:30,selling:0,items:[]});save()}if(b.id==='reset'&&confirm('แทนที่ข้อมูลปัจจุบันด้วยข้อมูลตัวอย่างหรือไม่?')){data=structuredClone(sample);save()}if(b.dataset.deleteIng){data.ingredients=data.ingredients.filter(i=>i.id!==b.dataset.deleteIng);data.recipes.forEach(r=>r.items=r.items.filter(x=>x.ingredient!==b.dataset.deleteIng));save()}if(b.dataset.deleteRecipe){data.recipes=data.recipes.filter(r=>r.id!==b.dataset.deleteRecipe);save()}if(b.dataset.addItem){data.recipes.find(r=>r.id===b.dataset.addItem).items.push({ingredient:data.ingredients[0]?.id||'',qty:.1});save()}if(b.dataset.removeItem){data.recipes.find(r=>r.id===b.dataset.removeItem).items.splice(Number(b.dataset.index),1);save()}});
-function csv(){let rows=[['วัตถุดิบ','หมวดหมู่','ราคาซื้อ','ปริมาณ','หน่วย','Yield %','ต้นทุนต่อหน่วย']];data.ingredients.forEach(i=>rows.push([i.name,i.category,i.price,i.qty,i.unit,i.yield,unitCost(i).toFixed(2)]));rows.push([]);rows.push(['เมนู','เสิร์ฟ','ต้นทุน/จาน','ราคาขาย','Food Cost %','กำไร']);data.recipes.forEach(r=>rows.push([r.name,r.portion,recipeCost(r).toFixed(2),r.selling,food(r).toFixed(2),margin(r).toFixed(2)]));return '\ufeff'+rows.map(row=>row.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(',')).join('\n')}
-export.onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv()],{type:'text/csv;charset=utf-8'}));a.download='recipe-cost-'+new Date().toISOString().slice(0,10)+'.csv';a.click()};render();
-</script></body></html>
+<body class="bg-slate-100 text-slate-800 min-h-screen">
+  <div id="app" class="pb-16">
+    <!-- Top Navigation Bar -->
+    <header class="bg-slate-900 text-white sticky top-0 z-30 shadow-md">
+      <div class="max-w-7xl mx-auto px-4 py-3 sm:px-6 flex flex-wrap justify-between items-center gap-3">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center font-black text-xl text-slate-950 shadow-inner">
+            ฿
+          </div>
+          <div>
+            <h1 class="text-lg sm:text-xl font-bold tracking-tight">RECIPE COST CALCULATOR <span class="text-amber-400">PRO</span></h1>
+            <p class="text-xs text-slate-400">ระบบจัดการต้นทุนสูตรอาหารและวิเคราะห์กำไรสำหรับร้านอาหาร</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button @click="exportToExcel" class="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+            <span>ส่งออก Excel</span>
+          </button>
+          <button @click="resetToDefaultData" class="text-xs text-slate-400 hover:text-rose-400 underline px-2 py-1">
+            โหลดข้อมูลตัวอย่าง
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab Buttons -->
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 flex gap-2 border-t border-slate-800 pt-2 pb-1 overflow-x-auto">
+        <button 
+          @click="activeTab = 'ingredients'"
+          :class="activeTab === 'ingredients' ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-300 hover:bg-slate-800'"
+          class="px-4 py-2 rounded-lg text-sm transition flex items-center gap-2 whitespace-nowrap">
+          <span>📦 1. ฐานข้อมูลวัตถุดิบ & Yield</span>
+          <span class="bg-slate-900/40 text-xs px-2 py-0.5 rounded-full">{{ ingredients.length }}</span>
+        </button>
+
+        <button 
+          @click="activeTab = 'recipes'"
+          :class="activeTab === 'recipes' ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-300 hover:bg-slate-800'"
+          class="px-4 py-2 rounded-lg text-sm transition flex items-center gap-2 whitespace-nowrap">
+          <span>🍳 2. คำนวณต้นทุนสูตรอาหาร (Recipes)</span>
+          <span class="bg-slate-900/40 text-xs px-2 py-0.5 rounded-full">{{ recipes.length }}</span>
+        </button>
+
+        <button 
+          @click="activeTab = 'dashboard'"
+          :class="activeTab === 'dashboard' ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-300 hover:bg-slate-800'"
+          class="px-4 py-2 rounded-lg text-sm transition flex items-center gap-2 whitespace-nowrap">
+          <span>📊 3. วิเคราะห์กำไร & Menu Engineering</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 mt-6">
+      
+      <!-- TAB 1: INGREDIENTS MASTER -->
+      <div v-if="activeTab === 'ingredients'" class="space-y-4">
+        <!-- Top alert / info -->
+        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3 text-amber-900">
+          <div class="text-2xl">💡</div>
+          <div class="text-xs sm:text-sm leading-relaxed">
+            <strong>หัวใจสำคัญของ Pro Version (Yield %):</strong> วัตถุดิบสดเมื่อซื้อมา (AP) เมื่อนำมาตัดแต่ง ปอกเปลือก หรือต้มสุก จะมีน้ำหนักสูญเสียไป ต้นทุนที่แท้จริงคือ <strong>EP Cost (Edible Portion)</strong> ซึ่งคำนวณจาก <code>ราคาซื้อ ÷ (ปริมาณ × Yield %)</code> ทำให้คุณไม่ตั้งราคาขายขาดทุนโดยไม่รู้ตัว
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center gap-2">
+              <h2 class="font-bold text-slate-800 text-base sm:text-lg">รายการวัตถุดิบทั้งหมด (Raw Materials)</h2>
+              <span class="text-xs text-slate-500">(แก้ไขค่าในช่องได้ทันที ข้อมูลจะบันทึกอัตโนมัติ)</span>
+            </div>
+            <button @click="addIngredient" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-sm font-semibold flex items-center gap-2 shadow-sm transition">
+              <span>+ เพิ่มวัตถุดิบ</span>
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+              <thead class="bg-slate-100/75 text-slate-600 font-semibold border-b border-slate-200 text-xs uppercase tracking-wider">
+                <tr>
+                  <th class="p-3.5">ชื่อวัตถุดิบ</th>
+                  <th class="p-3.5">หมวดหมู่</th>
+                  <th class="p-3.5 text-right">ราคาซื้อ (บาท)</th>
+                  <th class="p-3.5 text-right">ปริมาณซื้อ</th>
+                  <th class="p-3.5 text-center">หน่วยนับ</th>
+                  <th class="p-3.5 text-right text-amber-700">Yield % (ส่วนที่ใช้ได้)</th>
+                  <th class="p-3.5 text-right text-emerald-700">ต้นทุนแท้จริง (EP Cost)</th>
+                  <th class="p-3.5 text-center">จัดการ</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200">
+                <tr v-for="(ing, idx) in ingredients" :key="ing.id" class="hover:bg-amber-50/40 transition">
+                  <td class="p-3 min-w-[160px]">
+                    <input v-model="ing.name" @input="saveData" class="w-full font-medium bg-transparent border-b border-transparent focus:border-amber-500 focus:bg-white px-1 py-0.5 rounded outline-none" placeholder="เช่น เนื้ออกไก่สด" />
+                  </td>
+                  <td class="p-3 min-w-[120px]">
+                    <select v-model="ing.category" @change="saveData" class="w-full bg-slate-100 rounded px-2 py-1 text-xs border border-slate-200 focus:outline-none focus:border-amber-500">
+                      <option value="เนื้อสัตว์">🥩 เนื้อสัตว์</option>
+                      <option value="ผักผลไม้">🥦 ผักผลไม้</option>
+                      <option value="เครื่องปรุง">🧂 เครื่องปรุง</option>
+                      <option value="ของแห้ง/แป้ง">🌾 ของแห้ง/แป้ง</option>
+                      <option value="บรรจุภัณฑ์">📦 บรรจุภัณฑ์</option>
+                      <option value="อื่นๆ">기 อื่นๆ</option>
+                    </select>
+                  </td>
+                  <td class="p-3 text-right">
+                    <input type="number" step="any" v-model.number="ing.purchasePrice" @input="saveData" class="w-24 text-right bg-slate-50 border border-slate-200 rounded px-2 py-1 font-semibold focus:bg-white focus:border-amber-500 outline-none" />
+                  </td>
+                  <td class="p-3 text-right">
+                    <input type="number" step="any" v-model.number="ing.purchaseQty" @input="saveData" class="w-20 text-right bg-slate-50 border border-slate-200 rounded px-2 py-1 focus:bg-white focus:border-amber-500 outline-none" />
+                  </td>
+                  <td class="p-3 text-center">
+                    <select v-model="ing.unit" @change="saveData" class="bg-slate-50 border border-slate-200 rounded px-2 py-1 text-xs focus:bg-white focus:border-amber-500 outline-none">
+                      <option value="kg">kg (กิโลกรัม)</option>
+                      <option value="g">g (กรัม)</option>
+                      <option value="L">L (ลิตร)</option>
+                      <option value="ml">ml (มิลลิลิตร)</option>
+                      <option value="ฟอง">ฟอง</option>
+                      <option value="ชิ้น">ชิ้น</option>
+                      <option value="แพ็ค">แพ็ค</option>
+                    </select>
+                  </td>
+                  <td class="p-3 text-right">
+                    <div class="flex items-center justify-end gap-1">
+                      <input type="number" min="1" max="100" v-model.number="ing.yieldPercent" @input="saveData" class="w-16 text-right bg-amber-50 border border-amber-300 font-bold text-amber-900 rounded px-2 py-1 focus:bg-white focus:border-amber-500 outline-none" />
+                      <span class="text-xs text-amber-700 font-semibold">%</span>
+                    </div>
+                  </td>
+                  <td class="p-3 text-right font-bold text-emerald-700 whitespace-nowrap">
+                    ฿{{ getEpUnitCost(ing).toFixed(2) }} <span class="text-xs font-normal text-slate-500">/ {{ ing.unit }}</span>
+                  </td>
+                  <td class="p-3 text-center">
+                    <button @click="deleteIngredient(idx)" class="text-slate-400 hover:text-rose-600 transition p-1" title="ลบวัตถุดิบ">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: RECIPES & COSTING -->
+      <div v-if="activeTab === 'recipes'" class="space-y-6">
+        <div class="flex justify-between items-center">
+          <div>
+            <h2 class="text-xl font-bold text-slate-800">สูตรมาตรฐานและโครงสร้างต้นทุนจาน (Recipe Cards)</h2>
+            <p class="text-xs sm:text-sm text-slate-500">ผูกวัตถุดิบจากคลัง ระบบจะคำนวณต้นทุนต่อจานและตั้งราคาขายแนะนำให้อัตโนมัติ</p>
+          </div>
+          <button @click="addRecipe" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-sm shadow-sm transition flex items-center gap-1.5">
+            <span>+ สร้างสูตรเมนูใหม่</span>
+          </button>
+        </div>
+
+        <div v-for="(recipe, rIdx) in recipes" :key="recipe.id" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <!-- Recipe Header Bar -->
+          <div class="p-4 sm:p-5 bg-gradient-to-r from-slate-900 to-slate-800 text-white flex flex-wrap justify-between items-center gap-4">
+            <div class="flex-1 min-w-[200px]">
+              <input v-model="recipe.name" @input="saveData" class="text-lg sm:text-xl font-bold bg-transparent border-b border-transparent focus:border-amber-400 outline-none w-full text-amber-300" placeholder="ระบุชื่อเมนูอาหาร" />
+              <div class="text-xs text-slate-400 mt-1 flex gap-4">
+                <span>จำนวนเสิร์ฟต่อสูตร: 
+                  <input type="number" min="1" v-model.number="recipe.portion" @input="saveData" class="w-12 bg-slate-700 text-white rounded px-1 text-center font-bold" /> ที่
+                </span>
+                <span>ส่วนผสม: {{ recipe.items.length }} รายการ</span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+              <div class="text-right">
+                <div class="text-xs text-slate-400">ต้นทุนต่อจาน (Food Cost)</div>
+                <div class="text-xl font-black text-white">฿{{ getRecipePortionCost(recipe).toFixed(2) }}</div>
+              </div>
+              <button @click="deleteRecipe(rIdx)" class="text-slate-400 hover:text-rose-400 p-2" title="ลบสูตรนี้">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Recipe Body -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-200">
+            <!-- Left: Ingredients in Recipe -->
+            <div class="lg:col-span-8 p-4 sm:p-5">
+              <div class="flex justify-between items-center mb-3">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">ส่วนผสมและปริมาณที่ใช้</span>
+                <button @click="addRecipeItem(recipe)" class="text-xs font-semibold text-amber-700 hover:text-amber-800 flex items-center gap-1">
+                  <span>+ เพิ่มวัตถุดิบในสูตร</span>
+                </button>
+              </div>
+
+              <div class="space-y-2">
+                <div v-for="(item, iIdx) in recipe.items" :key="iIdx" class="flex flex-wrap sm:flex-nowrap items-center gap-2 p-2 rounded-lg bg-slate-50 border border-slate-200">
+                  <select v-model="item.ingredientId" @change="saveData" class="flex-1 bg-white border border-slate-200 rounded px-2 py-1.5 text-xs sm:text-sm focus:outline-none focus:border-amber-500">
+                    <option value="" disabled>-- เลือกวัตถุดิบ --</option>
+                    <option v-for="ing in ingredients" :key="ing.id" :value="ing.id">
+                      {{ ing.name }} (฿{{ getEpUnitCost(ing).toFixed(2) }}/{{ ing.unit }})
+                    </option>
+                  </select>
+
+                  <div class="flex items-center gap-1">
+                    <input type="number" step="any" min="0" v-model.number="item.qty" @input="saveData" class="w-20 text-right bg-white border border-slate-200 rounded px-2 py-1.5 text-xs sm:text-sm font-semibold focus:outline-none focus:border-amber-500" placeholder="ปริมาณ" />
+                    <span class="text-xs text-slate-500 w-10 text-center">{{ getItemUnit(item.ingredientId) }}</span>
+                  </div>
+
+                  <div class="w-24 text-right font-bold text-slate-700 text-xs sm:text-sm">
+                    ฿{{ getItemCost(item).toFixed(2) }}
+                  </div>
+
+                  <button @click="removeRecipeItem(recipe, iIdx)" class="text-slate-400 hover:text-rose-500 p-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                </div>
+
+                <div v-if="recipe.items.length === 0" class="text-center py-6 text-slate-400 text-xs sm:text-sm border-2 border-dashed border-slate-200 rounded-xl">
+                  ยังไม่มีวัตถุดิบในสูตรนี้ กดปุ่ม "+ เพิ่มวัตถุดิบในสูตร" ด้านบนเพื่อเริ่มคำนวณ
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Pricing & Margin Calculator -->
+            <div class="lg:col-span-4 p-4 sm:p-5 bg-slate-50/60 space-y-4">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-500 block">การตั้งราคาและกำไรต่อจาน</span>
+
+              <div class="space-y-3 text-sm">
+                <div class="flex justify-between items-center">
+                  <span class="text-slate-600">ต้นทุนต่อจาน:</span>
+                  <span class="font-bold text-slate-900 text-base">฿{{ getRecipePortionCost(recipe).toFixed(2) }}</span>
+                </div>
+
+                <div>
+                  <div class="flex justify-between text-xs text-slate-500 mb-1">
+                    <span>เป้าหมาย Food Cost %:</span>
+                    <span class="font-bold text-slate-700">{{ recipe.targetFoodCost }}%</span>
+                  </div>
+                  <input type="range" min="15" max="50" v-model.number="recipe.targetFoodCost" @input="saveData" class="w-full accent-amber-500" />
+                  <div class="text-[11px] text-slate-400 flex justify-between">
+                    <span>15% (Fine Dining)</span>
+                    <span>30-35% (Casual)</span>
+                    <span>50%</span>
+                  </div>
+                </div>
+
+                <div class="p-3 bg-amber-100/70 border border-amber-300 rounded-xl">
+                  <div class="text-xs text-amber-900 font-semibold">ราคาขายที่แนะนำ (ตามเป้าหมาย %):</div>
+                  <div class="text-2xl font-black text-amber-950">฿{{ getRecommendedPrice(recipe).toFixed(0) }}</div>
+                  <div class="text-[10px] text-amber-700 mt-0.5">* คำนวณจาก ต้นทุน ÷ เป้าหมาย Food Cost</div>
+                </div>
+
+                <div>
+                  <label class="text-xs font-bold text-slate-700 uppercase block mb-1">ราคาขายจริงที่คุณตั้งหน้าร้าน (บาท):</label>
+                  <input type="number" step="any" v-model.number="recipe.sellingPrice" @input="saveData" class="w-full bg-white border-2 border-slate-300 focus:border-slate-900 rounded-xl px-3 py-2 text-lg font-black text-slate-900 outline-none shadow-sm" />
+                </div>
+
+                <!-- Margin & Actual % -->
+                <div class="pt-2 border-t border-slate-200 space-y-2">
+                  <div class="flex justify-between items-center">
+                    <span class="text-slate-600">Food Cost จริง:</span>
+                    <span :class="getActualFoodCostPercent(recipe) > recipe.targetFoodCost ? 'text-rose-600' : 'text-emerald-700'" class="font-bold text-base">
+                      {{ getActualFoodCostPercent(recipe).toFixed(1) }}%
+                    </span>
+                  </div>
+
+                  <div class="flex justify-between items-center">
+                    <span class="text-slate-600">กำไรส่วนเกินต่อจาน (Margin):</span>
+                    <span class="font-bold text-emerald-700 text-base">
+                      ฿{{ getProfitPerPortion(recipe).toFixed(2) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: DASHBOARD & MENU ENGINEERING -->
+      <div v-if="activeTab === 'dashboard'" class="space-y-6">
+        <!-- Overview Stats -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="text-xs font-semibold text-slate-400 uppercase">จำนวนเมนูทั้งหมด</div>
+            <div class="text-3xl font-black text-slate-900 mt-1">{{ recipes.length }} เมนู</div>
+          </div>
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="text-xs font-semibold text-slate-400 uppercase">ค่าเฉลี่ย Food Cost รวม</div>
+            <div class="text-3xl font-black text-amber-600 mt-1">{{ getAverageFoodCost().toFixed(1) }}%</div>
+          </div>
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="text-xs font-semibold text-slate-400 uppercase">กำไรต่อจานเฉลี่ย (Contribution Margin)</div>
+            <div class="text-3xl font-black text-emerald-600 mt-1">฿{{ getAverageMargin().toFixed(2) }}</div>
+          </div>
+        </div>
+
+        <!-- Matrix Summary Table -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="p-4 bg-slate-50 border-b border-slate-200">
+            <h3 class="font-bold text-slate-800">ตารางเปรียบเทียบกำไรของทุกเมนู (Profitability Matrix)</h3>
+            <p class="text-xs text-slate-500">ช่วยให้ผู้บริหารร้านอาหารรู้ว่าเมนูใดสร้างเงินสด (Cash Flow) ให้ร้านได้มากที่สุด</p>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-slate-100 text-slate-600 text-xs font-semibold uppercase">
+                <tr>
+                  <th class="p-3.5">ชื่อเมนู</th>
+                  <th class="p-3.5 text-right">ต้นทุน/จาน</th>
+                  <th class="p-3.5 text-right">ราคาขายหน้าร้าน</th>
+                  <th class="p-3.5 text-right">Food Cost %</th>
+                  <th class="p-3.5 text-right text-emerald-700">กำไร/จาน (Margin)</th>
+                  <th class="p-3.5 text-center">สถานะสุขภาพเมนู</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200">
+                <tr v-for="recipe in recipes" :key="recipe.id" class="hover:bg-slate-50">
+                  <td class="p-3.5 font-bold text-slate-800">{{ recipe.name }}</td>
+                  <td class="p-3.5 text-right">฿{{ getRecipePortionCost(recipe).toFixed(2) }}</td>
+                  <td class="p-3.5 text-right font-semibold">฿{{ recipe.sellingPrice.toFixed(2) }}</td>
+                  <td class="p-3.5 text-right font-bold" :class="getActualFoodCostPercent(recipe) > 35 ? 'text-rose-600' : 'text-slate-700'">
+                    {{ getActualFoodCostPercent(recipe).toFixed(1) }}%
+                  </td>
+                  <td class="p-3.5 text-right font-black text-emerald-600">
+                    ฿{{ getProfitPerPortion(recipe).toFixed(2) }}
+                  </td>
+                  <td class="p-3.5 text-center">
+                    <span v-if="getProfitPerPortion(recipe) > 100 && getActualFoodCostPercent(recipe) <= 32" class="px-2 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                      ⭐ เมนูดาวเด่น (Star)
+                    </span>
+                    <span v-else-if="getActualFoodCostPercent(recipe) > 38" class="px-2 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-800">
+                      ⚠️ ต้นทุนสูงเกินเกณฑ์
+                    </span>
+                    <span v-else class="px-2 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
+                      ✔️ มาตรฐาน (Good)
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    const { createApp, ref, computed, onMounted } = Vue;
+
+    createApp({
+      setup() {
+        const activeTab = ref('ingredients');
+        const ingredients = ref([]);
+        const recipes = ref([]);
+
+        // Default Data Set
+        const sampleIngredients = [
+          { id: '1', name: 'อกไก่สด', category: 'เนื้อสัตว์', purchasePrice: 95, purchaseQty: 1, unit: 'kg', yieldPercent: 88 },
+          { id: '2', name: 'เนื้อสันคอหมู', category: 'เนื้อสัตว์', purchasePrice: 175, purchaseQty: 1, unit: 'kg', yieldPercent: 92 },
+          { id: '3', name: 'ผักกาดแก้ว', category: 'ผักผลไม้', purchasePrice: 65, purchaseQty: 1, unit: 'kg', yieldPercent: 75 },
+          { id: '4', name: 'ไข่ไก่เบอร์ 2', category: 'เครื่องปรุง', purchasePrice: 130, purchaseQty: 30, unit: 'ฟอง', yieldPercent: 100 },
+          { id: '5', name: 'ซอสปรุงรสฝาเขียว', category: 'เครื่องปรุง', purchasePrice: 48, purchaseQty: 1, unit: 'L', yieldPercent: 100 },
+          { id: '6', name: 'ข้าวหอมมะลิ', category: 'ของแห้ง/แป้ง', purchasePrice: 195, purchaseQty: 5, unit: 'kg', yieldPercent: 100 },
+          { id: '7', name: 'กล่องอาหารรักษ์โลก', category: 'บรรจุภัณฑ์', purchasePrice: 150, purchaseQty: 50, unit: 'ชิ้น', yieldPercent: 100 }
+        ];
+
+        const sampleRecipes = [
+          {
+            id: 'r1',
+            name: 'ข้าวกะเพราอกไก่ไข่ดาว',
+            portion: 1,
+            targetFoodCost: 30,
+            sellingPrice: 75,
+            items: [
+              { ingredientId: '1', qty: 0.15 },  // 150g อกไก่
+              { ingredientId: '6', qty: 0.12 },  // 120g ข้าวสาร
+              { ingredientId: '4', qty: 1 },     // ไข่ 1 ฟอง
+              { ingredientId: '5', qty: 0.02 },  // ซอส 20ml
+              { ingredientId: '7', qty: 1 }      // กล่อง 1 ชิ้น
+            ]
+          },
+          {
+            id: 'r2',
+            name: 'สลัดสันคอหมูย่างน้ำตก',
+            portion: 1,
+            targetFoodCost: 32,
+            sellingPrice: 149,
+            items: [
+              { ingredientId: '2', qty: 0.18 },
+              { ingredientId: '3', qty: 0.10 },
+              { ingredientId: '5', qty: 0.03 }
+            ]
+          }
+        ];
+
+        // Load & Save to LocalStorage
+        const loadSavedData = () => {
+          const savedIng = localStorage.getItem('bistodio_pro_ingredients');
+          const savedRec = localStorage.getItem('bistodio_pro_recipes');
+          if (savedIng && savedRec) {
+            try {
+              ingredients.value = JSON.parse(savedIng);
+              recipes.value = JSON.parse(savedRec);
+            } catch (e) {
+              resetToDefaultData();
+            }
+          } else {
+            resetToDefaultData();
+          }
+        };
+
+        const saveData = () => {
+          localStorage.setItem('bistodio_pro_ingredients', JSON.stringify(ingredients.value));
+          localStorage.setItem('bistodio_pro_recipes', JSON.stringify(recipes.value));
+        };
+
+        const resetToDefaultData = () => {
+          ingredients.value = JSON.parse(JSON.stringify(sampleIngredients));
+          recipes.value = JSON.parse(JSON.stringify(sampleRecipes));
+          saveData();
+        };
+
+        // Calculations
+        const getEpUnitCost = (ing) => {
+          if (!ing || !ing.purchasePrice || !ing.purchaseQty || !ing.yieldPercent) return 0;
+          const apCost = ing.purchasePrice / ing.purchaseQty;
+          return apCost / (ing.yieldPercent / 100);
+        };
+
+        const getItemUnit = (ingId) => {
+          const ing = ingredients.value.find(i => i.id === ingId);
+          return ing ? ing.unit : '-';
+        };
+
+        const getItemCost = (item) => {
+          const ing = ingredients.value.find(i => i.id === item.ingredientId);
+          if (!ing) return 0;
+          return getEpUnitCost(ing) * (Number(item.qty) || 0);
+        };
+
+        const getRecipeTotalCost = (recipe) => {
+          return recipe.items.reduce((sum, item) => sum + getItemCost(item), 0);
+        };
+
+        const getRecipePortionCost = (recipe) => {
+          const portion = Number(recipe.portion) || 1;
+          return getRecipeTotalCost(recipe) / portion;
+        };
+
+        const getRecommendedPrice = (recipe) => {
+          const target = Number(recipe.targetFoodCost) || 30;
+          const cost = getRecipePortionCost(recipe);
+          return cost / (target / 100);
+        };
+
+        const getActualFoodCostPercent = (recipe) => {
+          const price = Number(recipe.sellingPrice) || 0;
+          if (price <= 0) return 0;
+          return (getRecipePortionCost(recipe) / price) * 100;
+        };
+
+        const getProfitPerPortion = (recipe) => {
+          const price = Number(recipe.sellingPrice) || 0;
+          return price - getRecipePortionCost(recipe);
+        };
+
+        // Aggregates
+        const getAverageFoodCost = () => {
+          if (recipes.value.length === 0) return 0;
+          const sum = recipes.value.reduce((acc, r) => acc + getActualFoodCostPercent(r), 0);
+          return sum / recipes.value.length;
+        };
+
+        const getAverageMargin = () => {
+          if (recipes.value.length === 0) return 0;
+          const sum = recipes.value.reduce((acc, r) => acc + getProfitPerPortion(r), 0);
+          return sum / recipes.value.length;
+        };
+
+        // Actions
+        const addIngredient = () => {
+          ingredients.value.push({
+            id: Date.now().toString(),
+            name: 'วัตถุดิบใหม่',
+            category: 'เนื้อสัตว์',
+            purchasePrice: 100,
+            purchaseQty: 1,
+            unit: 'kg',
+            yieldPercent: 100
+          });
+          saveData();
+        };
+
+        const deleteIngredient = (index) => {
+          ingredients.value.splice(index, 1);
+          saveData();
+        };
+
+        const addRecipe = () => {
+          recipes.value.push({
+            id: Date.now().toString(),
+            name: 'เมนูใหม่',
+            portion: 1,
+            targetFoodCost: 30,
+            sellingPrice: 0,
+            items: []
+          });
+          saveData();
+        };
+
+        const deleteRecipe = (index) => {
+          recipes.value.splice(index, 1);
+          saveData();
+        };
+
+        const addRecipeItem = (recipe) => {
+          const firstIng = ingredients.value[0];
+          recipe.items.push({
+            ingredientId: firstIng ? firstIng.id : '',
+            qty: 0.1
+          });
+          saveData();
+        };
+
+        const removeRecipeItem = (recipe, index) => {
+          recipe.items.splice(index, 1);
+          saveData();
+        };
+
+        // Export to CSV / Excel
+        const exportToExcel = () => {
+          let csv = "\uFEFF"; // UTF-8 BOM for Thai support in Excel
+          csv += "--- รายการวัตถุดิบและ YIELD (INGREDIENTS) ---\n";
+          csv += "ชื่อวัตถุดิบ,หมวดหมู่,ราคาซื้อ (บาท),ปริมาณที่ซื้อ,หน่วย,Yield (%),ต้นทุนสุทธิ EP (บาท/หน่วย)\n";
+          ingredients.value.forEach(i => {
+            csv += `"${i.name}","${i.category}",${i.purchasePrice},${i.purchaseQty},"${i.unit}",${i.yieldPercent},${getEpUnitCost(i).toFixed(2)}\n`;
+          });
+
+          csv += "\n--- สรุปต้นทุนและราคาขายเมนู (RECIPES SUMMARY) ---\n";
+          csv += "ชื่อเมนู,จำนวนเสิร์ฟ,ต้นทุนรวม (บาท),ต้นทุนต่อจาน (บาท),ราคาขายหน้าร้าน (บาท),Food Cost (%),กำไรต่อจาน (บาท)\n";
+          recipes.value.forEach(r => {
+            csv += `"${r.name}",${r.portion},${getRecipeTotalCost(r).toFixed(2)},${getRecipePortionCost(r).toFixed(2)},${r.sellingPrice},${getActualFoodCostPercent(r).toFixed(2)},${getProfitPerPortion(r).toFixed(2)}\n`;
+          });
+
+          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.setAttribute("href", url);
+          link.setAttribute("download", `Recipe_Costing_${new Date().toISOString().slice(0,10)}.csv`);
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        };
+
+        onMounted(() => {
+          loadSavedData();
+        });
+
+        return {
+          activeTab,
+          ingredients,
+          recipes,
+          saveData,
+          resetToDefaultData,
+          addIngredient,
+          deleteIngredient,
+          addRecipe,
+          deleteRecipe,
+          addRecipeItem,
+          removeRecipeItem,
+          getEpUnitCost,
+          getItemUnit,
+          getItemCost,
+          getRecipeTotalCost,
+          getRecipePortionCost,
+          getRecommendedPrice,
+          getActualFoodCostPercent,
+          getProfitPerPortion,
+          getAverageFoodCost,
+          getAverageMargin,
+          exportToExcel
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+  </html>
